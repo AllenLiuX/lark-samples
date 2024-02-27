@@ -7,6 +7,7 @@ from api import MessageApiClient
 from event import MessageReceiveEvent, UrlVerificationEvent, EventManager
 from flask import Flask, jsonify
 from dotenv import load_dotenv, find_dotenv
+from scout_bot import ScoutBot
 
 # load env parameters form file named .env
 load_dotenv(find_dotenv())
@@ -23,6 +24,7 @@ LARK_HOST = os.getenv("LARK_HOST")
 # init service
 message_api_client = MessageApiClient(APP_ID, APP_SECRET, LARK_HOST)
 event_manager = EventManager()
+scout_bot = ScoutBot()
 
 
 @event_manager.register("url_verification")
@@ -44,7 +46,9 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     open_id = sender_id.open_id
     text_content = message.content
     # echo text message
-    message_api_client.send_text_with_open_id(open_id, text_content)
+    reply_content = scout_bot.process_message(text_content)
+    print('====== ', reply_content)
+    message_api_client.send_text_with_open_id(open_id, reply_content)
     return jsonify()
 
 
@@ -68,4 +72,4 @@ def callback_event_handler():
 
 if __name__ == "__main__":
     # init()
-    app.run(host="0.0.0.0", port=3000, debug=True)
+    app.run(host="0.0.0.0", port=4999, debug=True)
